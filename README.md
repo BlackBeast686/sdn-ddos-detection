@@ -1,45 +1,39 @@
 # SDN DDoS Detection
 
-Detecting **DDoS attacks on SDN (Software-Defined Networking) based networks** using the *LR-HR DDoS 2024 Dataset for SDN-Based Networks*. The notebook combines classical machine-learning classifiers with a Keras neural network and works through a series of iterative experiments, each adding a regularization or robustness technique.
+Detecting **DDoS attacks on SDN (Software-Defined Networking) based networks** with machine learning. The repository applies the same model family — a voting ensemble of classical classifiers, plus (in one notebook) a Keras neural network — across three different SDN DDoS datasets.
 
-> **Note on scope:** This is a research/experimental notebook for comparing models and techniques, not a production intrusion-detection system.
+> **Note on scope:** These are research/experimental notebooks for comparing models and techniques, not a production intrusion-detection system.
 
-## Task & data
+## Notebooks & datasets
 
-- **Dataset:** `LR-HR DDoS 2024 Dataset for SDN-Based Networks.csv`
-- **Task:** classifying network flows as benign or DDoS attack (the `Label` column).
-- **Preprocessing:** dropping non-contributing / constant flow-flag columns, `VarianceThreshold` feature filtering, `StandardScaler` scaling, and `SMOTE` for class imbalance.
+| Notebook | Dataset(s) | Models | Ensemble accuracy |
+|----------|-----------|--------|-------------------|
+| `SDN_DDoS_Detection.ipynb` | LR-HR DDoS 2024 Dataset for SDN-Based Networks | KNN, Naive Bayes, Decision Tree, Random Forest voting ensemble + Keras NN | ~0.999 |
+| `SDN_DDOS_Dataset.ipynb` | `SDN_DDOS_dataset.csv` | KNN, NB, DT, SVM, RF, LogReg + voting ensemble (+ 5-fold CV) | 0.960 |
+| `ICMP_SDN_DDOS_UDP_Datasets.ipynb` | `SDN_DDOS_dataset.csv` + `ICMP.csv` + `udp.csv` combined (~119k rows) | same six + voting ensemble (+ CV) | 0.943 |
 
-The dataset is **not** included in this repository — place the CSV at the path referenced in the notebook (`/content/` on Colab) or update it.
+Common pipeline: numeric-feature selection, Gaussian-noise injection, mean imputation, `StandardScaler` scaling, a stratified train/test split, per-model metrics (accuracy, precision, recall, F1), and a `VotingClassifier` ensemble. The two dataset-specific notebooks add stratified 5-fold cross-validation; `SDN_DDoS_Detection.ipynb` additionally works through a series of neural-network experiments (dropout, L2 regularization, batch norm, SMOTE, Gaussian noise, early stopping).
 
-## Approach
-
-The notebook is organised as progressive experiments (each markdown cell notes what was added):
-
-- **Models** — KNN, Naive Bayes, Decision Tree, and Random Forest combined in a `VotingClassifier`, plus a Keras feedforward neural network.
-- **Techniques explored** — dropout, L2 regularization, batch normalization, Gaussian noise injection, cross-validation (`StratifiedKFold`), early stopping, and SMOTE oversampling.
-- A final section runs the pipeline on a **random/simulated dataset** as a noise/robustness sanity check.
+None of the datasets are included in this repository — place the relevant CSV(s) at the paths referenced in each notebook (`/content/` on Colab) or update them.
 
 ## Results
 
-On the real dataset, the models reach very high accuracy (test set, single runs):
+Voting-ensemble test accuracy per dataset (single runs, cross-validated where noted):
 
-| Model | Accuracy |
-|-------|----------|
-| Decision Tree | 0.9997 |
-| KNN | 0.9996 |
-| Voting ensemble | 0.9996 |
-| Naive Bayes | 0.9994 |
-| Neural network | ~0.998 |
+| Dataset | Ensemble accuracy |
+|---------|-------------------|
+| LR-HR DDoS 2024 | ~0.999 |
+| `SDN_DDOS_dataset.csv` | 0.960 |
+| `SDN_DDOS` + `ICMP` + `udp` combined | 0.943 |
 
-> Accuracies this high usually mean the classes are very easily separable in this dataset (and/or some leakage-prone features); the later experiments add noise, SMOTE, and regularization partly to probe robustness. The simulated-data section performs near chance by design. Treat the figures as indicative.
+> Figures are single runs (cross-validated where indicated). Treat them as indicative rather than definitive.
 
 ## Requirements
 
 Developed in Google Colab. Main dependencies:
 
-- `tensorflow`
 - `scikit-learn`
+- `tensorflow`
 - `imbalanced-learn`
 - `pandas`
 - `numpy`
@@ -52,14 +46,16 @@ pip install -r requirements.txt
 
 ## Getting started
 
-1. Open the notebook in Google Colab or Jupyter.
-2. Place `LR-HR DDoS 2024 Dataset for SDN-Based Networks.csv` at the path used in the cells.
-3. Run the cells top to bottom; each experiment section is self-contained.
+1. Open the notebook you want in Google Colab or Jupyter.
+2. Place the dataset CSV(s) that the notebook expects at the referenced paths.
+3. Run the cells top to bottom; each notebook is self-contained.
 
 ## Repository structure
 
 ```
 .
-├── Code.ipynb
+├── SDN_DDoS_Detection.ipynb            # LR-HR DDoS 2024 dataset (ML ensemble + Keras NN)
+├── SDN_DDOS_Dataset.ipynb              # SDN_DDOS_dataset.csv
+├── ICMP_SDN_DDOS_UDP_Datasets.ipynb    # SDN_DDOS + ICMP + udp combined
 └── README.md
 ```
